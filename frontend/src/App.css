@@ -1,0 +1,65 @@
+/* Common styling for modal container and overlay */
+
+.modal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999; /* Display above other content */
+    opacity: 0; /* 初始时设置为透明 */
+    pointer-events: none; /* 默认情况下禁用交互，等到 modal 完全出现后启用 */
+    transition: opacity 0.3s ease-in-out; /* 过渡效果，0.3秒渐变 */
+  }
+  
+  /* Styling for the modal content */
+  .modal {
+    background-color: #fff;
+    padding: 30px;
+    width: 300px;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0; /* 初始时设置为透明 */
+    transition: opacity 0.3s ease-in-out; /* 过渡效果，0.3秒渐变 */
+  }
+  
+  /* Additional styling for modal headings */
+  .modal h2 {
+    margin-bottom: 10px;
+  }
+  
+  /* Styling for a container at the top-right corner */
+  .button-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  
+  /* Styling for a container with flex column direction */
+  .input-container {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Margin for labels within the input container */
+  .input-container label {
+    margin-bottom: 4px; /* Adjust the margin as needed */
+  }
+  
+  /* Show modal and overlay when open class is applied */
+  .modal-container.open {
+    opacity: 1; /* modal-container 完全不透明，显示在页面上 */
+    pointer-events: auto; /* 启用交互 */
+  }
+  
+  /* Show modal content when open class is applied */
+  .modal.open {
+    opacity: 1; /* modal 完全不透明，显示在页面上 */
+  }
+  
