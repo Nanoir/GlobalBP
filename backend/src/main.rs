@@ -3,34 +3,33 @@
 use axum::{serve::Serve, Router};
 use std::net::SocketAddr;
 use crate::router::router::init_user_router;
-use crate::db::db::init_db_pool;
-use crate::user::{user_repo::UserRepository, user_service::UserService, user_handler::UserHandler};
+use crate::db::db::database_connection;
+use crate::user::{user_repo::UserRepository, user_handler::UserHandler};
 
 mod router;
 mod db;
 mod user;
+mod bp;
 
 #[tokio::main]
 async fn main() {
-    // 初始化数据库连接池
-    let db_pool = init_db_pool().await.unwrap();
+    // Establish a connection to the database
+    let db_pool = database_connection().await;
 
-    // 创建用户仓库，并传入数据库连接池
-    let user_repo = UserRepository::new(db_pool);
+    // Create repository instances
+    let user_repo = UserRepository::new(db_pool.clone());
+    let user_handler = UserHandler::new(user_repo.clone());
 
-    // 创建用户服务，并传入用户仓库
-    let user_service = UserService::new(user_repo);
+    let bp_repo = BpRepository::new(db_pool.clone());
 
-    // 创建用户处理程序，并传入用户服务
-    let user_handler = UserHandler::new(user_service);
+    // Create handler instances
+    let bp_handler = BpHandler::new(bp_repo.clone());
 
-    // 初始化用户路由，并传入用户处理程序
-    let user_router = init_user_router(user_handler);
+    // Create an Axum router and mount the routes
+    let app: Router = init_user_router(user_handler, bp_handler);
 
-    // 启动服务器
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
-    let app = Router::new().nest("/api", user_router);
-    Serve::bind(&addr)
+    // Start the Axum server
+    Server::bind(&"0.0.0.0:3000".parse().unwrap())
         .serve(app.into_make_service())
         .await
         .unwrap();

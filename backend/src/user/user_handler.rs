@@ -1,23 +1,39 @@
-// user_handler.rs
-
-use crate::user::user_service::UserService;
+use axum::{Json, response::IntoResponse};
+use crate::user::user_repo::{User, UserRepository};
+use http::{Response, StatusCode};
 use anyhow::Result;
-use crate::user::user::User;
 
 pub struct UserHandler {
-    user_service: UserService,
+    user_repo: UserRepository,
 }
 
 impl UserHandler {
-    pub fn new(user_service: UserService) -> Self {
-        UserHandler { user_service }
+    pub fn new(user_repo: UserRepository) -> Self {
+        Self { user_repo }
     }
 
-    pub async fn login(&self, username: &str) -> Result<User> {
-        self.user_service.get_user_by_username(username).await
+    pub async fn signup(&self, user: Json<User>) -> impl IntoResponse {
+        let user = user.into_inner();
+
+        match self.user_repo.register_user(&user.username, &user.password).await {
+            Ok(()) => Response::new(StatusCode::CREATED),
+            Err(err) => {
+                eprintln!("Error registering user: {:?}", err);
+                Response::new(StatusCode::INTERNAL_SERVER_ERROR)
+            }
+        }
     }
 
-    pub async fn signup(&self, username: &str, password: &str) -> Result<()> {
-        self.user_service.create_user(username, password).await
+    pub async fn login(&self, user: Json<User>) -> impl IntoResponse {
+        let user = user.into_inner();
+
+        match self.user_repo.login_user(&user.username, &user.password).await {
+            Ok(true) => Response::new(StatusCode::OK),
+            Ok(false) => Response::new(StatusCode::UNAUTHORIZED),
+            Err(err) => {
+                eprintln!("Error logging in user: {:?}", err);
+                Response::new(StatusCode::INTERNAL_SERVER_ERROR)
+            }
+        }
     }
 }
